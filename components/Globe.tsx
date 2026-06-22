@@ -1,6 +1,17 @@
 'use client'
 
 import { useRef, useEffect, useMemo, useState } from 'react'
+
+type TrailPoint = [number, number]
+interface Trail { path: TrailPoint[]; color: string }
+
+// Offset pointing "backwards" along each zone's typical approach vector
+const ZONE_BACK: Record<string, TrailPoint> = {
+  hormuz: [0.22,  -0.30],
+  redsea: [-0.20, -0.28],
+  cape:   [-0.18, -0.26],
+  safe:   [-0.10, -0.14],
+}
 import GlobeGL from 'react-globe.gl'
 
 interface Vessel {
@@ -46,6 +57,9 @@ export default function Globe({ vessels, simulation, onVesselClick }: GlobeProps
   const globeEl = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [dims, setDims] = useState({ w: 800, h: 600 })
+  const [trails, setTrails] = useState<Trail[]>([])
+  const histRef = useRef<Map<string, TrailPoint[]>>(new Map())
+  const seeded = useRef(false)
 
   // Measure container so globe fills it exactly
   useEffect(() => {
@@ -81,6 +95,45 @@ export default function Globe({ vessels, simulation, onVesselClick }: GlobeProps
     if (v) globeEl.current.pointOfView(v, 2000)
   }, [simulation.active, simulation.scenarioId])
 
+  // Build vessel trail history
+  useEffect(() => {
+    if (!vessels.length) return
+
+    if (!seeded.current) {
+      seeded.current = true
+      vessels.forEach(v => {
+        const [dlat, dlng] = ZONE_BACK[v.riskZone] ?? [-0.1, -0.14]
+        histRef.current.set(v.id, [
+          [v.lat + dlat * 4, v.lng + dlng * 4],
+          [v.lat + dlat * 3, v.lng + dlng * 3],
+          [v.lat + dlat * 2, v.lng + dlng * 2],
+          [v.lat + dlat,     v.lng + dlng],
+          [v.lat, v.lng],
+        ])
+      })
+    } else {
+      vessels.forEach(v => {
+        const hist = histRef.current.get(v.id) ?? [[v.lat, v.lng] as TrailPoint]
+        const last = hist[hist.length - 1]
+        if (Math.abs(last[0] - v.lat) > 0.04 || Math.abs(last[1] - v.lng) > 0.04) {
+          hist.push([v.lat, v.lng])
+          if (hist.length > 8) hist.shift()
+          histRef.current.set(v.id, hist)
+        }
+      })
+    }
+
+    setTrails(
+      vessels
+        .map(v => {
+          const hist = histRef.current.get(v.id)
+          if (!hist || hist.length < 2) return null
+          return { path: [...hist] as TrailPoint[], color: RISK_COLORS[v.riskZone] ?? '#3b82f6' }
+        })
+        .filter((x): x is Trail => x !== null)
+    )
+  }, [vessels])
+
   const points = useMemo(() => vessels.map(v => ({
     lat: v.lat,
     lng: v.lng,
@@ -109,6 +162,14 @@ export default function Globe({ vessels, simulation, onVesselClick }: GlobeProps
         arcDashAnimateTime={2000}
         arcStroke={1.5}
         arcAltitudeAutoScale={0.3}
+        // Vessel movement trails
+        pathsData={trails}
+        pathPoints="path"
+        pathColor={(t: any) => t.color}
+        pathDashLength={0.4}
+        pathDashGap={0.15}
+        pathDashAnimateTime={2800}
+        pathStroke={0.7}
         // India port rings
         ringsData={PORTS}
         ringColor={() => '#f97316'}
