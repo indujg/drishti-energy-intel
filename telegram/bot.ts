@@ -1,3 +1,8 @@
+// Load .env.local when running as a standalone process (ts-node / node)
+import * as dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
+dotenv.config() // fallback to .env
+
 import { Telegraf } from 'telegraf'
 import { MOCK_NEWS, INDIA_IMPORT_STATS, SIMULATION_SCENARIOS } from '../lib/mock-data'
 import { createSupabaseClient } from '../lib/supabase'
