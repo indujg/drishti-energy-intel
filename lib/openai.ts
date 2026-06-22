@@ -1,11 +1,16 @@
 import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+function getClient(): OpenAI | null {
+  if (!process.env.OPENAI_API_KEY) return null
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 export async function scoreGeopoliticalRisk(
   headline: string,
   corridor: string
 ): Promise<{ score: number; analysis: string; recommendation: string }> {
+  const client = getClient()
+  if (!client) return { score: 50, analysis: 'Risk assessment unavailable', recommendation: 'Monitor situation' }
   try {
     const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -41,6 +46,16 @@ export async function generateProcurementPlan(
   summary: string
   recommendations: Array<{ supplier: string; volume: string; route: string; cost: string; timeline: string; confidence: number }>
 }> {
+  const client = getClient()
+  const fallback = {
+    summary: 'Emergency procurement analysis in progress. Activating alternative supply corridors.',
+    recommendations: [
+      { supplier: 'West Africa (Nigeria)', volume: '8 MMbbl', route: 'Cape of Good Hope', cost: '+$2.8/bbl', timeline: '18 days', confidence: 72 },
+      { supplier: 'US Gulf Coast', volume: '5 MMbbl', route: 'Atlantic + Indian Ocean', cost: '+$4.1/bbl', timeline: '26 days', confidence: 65 },
+      { supplier: 'Kazakhstan (CPC Pipeline)', volume: '3 MMbbl', route: 'Black Sea + Suez', cost: '+$1.9/bbl', timeline: '14 days', confidence: 58 },
+    ],
+  }
+  if (!client) return fallback
   try {
     const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -67,14 +82,7 @@ JSON format: {"summary": "<2 sentence executive summary>", "recommendations": [{
     })
     return JSON.parse(completion.choices[0].message.content ?? '{}')
   } catch {
-    return {
-      summary: 'Emergency procurement analysis in progress. Activating alternative supply corridors.',
-      recommendations: [
-        { supplier: 'West Africa (Nigeria)', volume: '8 MMbbl', route: 'Cape of Good Hope', cost: '+$2.8/bbl', timeline: '18 days', confidence: 72 },
-        { supplier: 'US Gulf Coast', volume: '5 MMbbl', route: 'Atlantic + Indian Ocean', cost: '+$4.1/bbl', timeline: '26 days', confidence: 65 },
-        { supplier: 'Kazakhstan (CPC Pipeline)', volume: '3 MMbbl', route: 'Black Sea + Suez', cost: '+$1.9/bbl', timeline: '14 days', confidence: 58 },
-      ],
-    }
+    return fallback
   }
 }
 
@@ -83,6 +91,17 @@ export async function analyzeSPRStrategy(
   daysOfCover: number,
   dailyDemand: number
 ): Promise<{ drawdownPlan: Array<{ day: number; release: number; remaining: number }>; strategy: string }> {
+  const client = getClient()
+  const fallbackPlan = Array.from({ length: 10 }, (_, i) => ({
+    day: i + 1,
+    release: i < 5 ? 0.5 : 0.8,
+    remaining: Math.max(0, daysOfCover - (i + 1) * 0.15),
+  }))
+  const fallback = {
+    strategy: 'Gradual SPR release recommended to stabilize domestic prices while alternative procurement is secured.',
+    drawdownPlan: fallbackPlan,
+  }
+  if (!client) return fallback
   try {
     const completion = await client.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -105,14 +124,6 @@ JSON format: {"strategy": "<one paragraph recommendation>", "drawdownPlan": [{"d
     })
     return JSON.parse(completion.choices[0].message.content ?? '{}')
   } catch {
-    const plan = Array.from({ length: 10 }, (_, i) => ({
-      day: i + 1,
-      release: i < 5 ? 0.5 : 0.8,
-      remaining: Math.max(0, daysOfCover - (i + 1) * 0.15),
-    }))
-    return {
-      strategy: 'Gradual SPR release recommended to stabilize domestic prices while alternative procurement is secured.',
-      drawdownPlan: plan,
-    }
+    return fallback
   }
 }
