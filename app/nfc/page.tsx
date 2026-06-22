@@ -84,7 +84,7 @@ export default function NFCBriefing() {
 
       {/* CTA */}
       <a
-        href="/"
+        href="https://drishti-intel.vercel.app"
         className="w-full py-3 bg-orange-500/20 border border-orange-500/40 rounded-xl text-center text-sm font-semibold text-orange-400 hover:bg-orange-500/30 transition-colors"
       >
         Open Full War Room →

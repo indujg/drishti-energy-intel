@@ -5,6 +5,8 @@
 
 **ET AI Hackathon 2026 · Problem Statement #2 · Supply Chain Intelligence / Energy Security**
 
+**[🚀 Live Demo](https://drishti-intel.vercel.app) · [📦 GitHub](https://github.com/indujg/drishti-energy-intel)**
+
 ---
 
 ## The Problem
@@ -91,8 +93,8 @@ Tap any NFC card → instant mobile briefing at `/nfc` — risk score, price, SP
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-team/drishti
-cd drishti
+git clone https://github.com/indujg/drishti-energy-intel
+cd drishti-energy-intel
 npm install
 # Edit .env.local with your API keys
 npm run dev

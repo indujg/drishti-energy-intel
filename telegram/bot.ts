@@ -81,7 +81,7 @@ bot.command('simulate', ctx => {
     scenario.alternatives.map(a =>
       `• ${a.route}: ${a.viability}% viable · ${a.extraCost} · ${a.capacity} capacity`
     ).join('\n') +
-    `\n\n📱 View full simulation: https://drishti.vercel.app`,
+    `\n\n📱 View full simulation: https://drishti-intel.vercel.app`,
     { parse_mode: 'Markdown' }
   )
 })
