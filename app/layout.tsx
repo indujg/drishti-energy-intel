@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
   title: "DRISHTI — India Energy Security Intelligence",
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full bg-[#050914] text-slate-100 antialiased overflow-hidden`}>
+      <body className={`${jetbrainsMono.className} h-full antialiased overflow-hidden`} style={{ background: 'var(--c-bg)', color: 'var(--c-text)' }}>
         {children}
       </body>
     </html>

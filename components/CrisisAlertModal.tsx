@@ -13,6 +13,21 @@ interface Props {
   onDismiss: () => void
 }
 
+const SCENARIO_COLORS: Record<string, string> = {
+  hormuz_closure:  '#ff3232',
+  redsea_shutdown: '#ffb800',
+  opec_cut:        '#ffb800',
+  combined_crisis: '#b06cff',
+}
+
+function getScenarioColor(name: string): string {
+  if (name.toLowerCase().includes('hormuz')) return '#ff3232'
+  if (name.toLowerCase().includes('red sea')) return '#ffb800'
+  if (name.toLowerCase().includes('opec')) return '#ffb800'
+  if (name.toLowerCase().includes('combined')) return '#b06cff'
+  return '#ff3232'
+}
+
 export default function CrisisAlertModal({ scenario, onDismiss }: Props) {
   const [phase, setPhase] = useState<'hidden' | 'in' | 'hold' | 'out'>('hidden')
 
@@ -27,54 +42,115 @@ export default function CrisisAlertModal({ scenario, onDismiss }: Props) {
 
   if (phase === 'hidden' || !scenario) return null
 
-  const vis = phase === 'in' ? 'opacity-0 scale-105' : phase === 'out' ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+  const accentColor = getScenarioColor(scenario.name)
+  const vis =
+    phase === 'in'  ? 'opacity-0 scale-105' :
+    phase === 'out' ? 'opacity-0 scale-95'  : 'opacity-100 scale-100'
 
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${vis}`}
-      style={{ background: 'rgba(0,0,0,0.96)' }}
+      style={{ background: 'rgba(0,0,0,0.95)' }}
     >
-      {/* CRT scanlines */}
+      {/* Scan-line overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px)',
+          background: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.14) 3px,rgba(0,0,0,0.14) 4px)',
         }}
       />
+
       {/* Pulse rings */}
-      <div className="absolute w-[500px] h-[500px] rounded-full border border-red-500/20 animate-ping" style={{ animationDuration: '1s' }} />
-      <div className="absolute w-[320px] h-[320px] rounded-full border border-red-500/30 animate-ping" style={{ animationDuration: '1.6s' }} />
+      <div
+        className="absolute rounded-full border pointer-events-none"
+        style={{ width: 520, height: 520, borderColor: `${accentColor}20`, animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite' }}
+      />
+      <div
+        className="absolute rounded-full border pointer-events-none"
+        style={{ width: 340, height: 340, borderColor: `${accentColor}30`, animation: 'ping 1.6s cubic-bezier(0,0,0.2,1) infinite' }}
+      />
 
-      <div className="relative text-center max-w-lg px-8">
-        <div className="text-6xl mb-5">{scenario.icon}</div>
+      {/* Modal panel */}
+      <div
+        className="relative font-mono max-w-md w-full mx-4"
+        style={{
+          background: '#020c0c',
+          border: `1px solid ${accentColor}60`,
+          padding: '32px 28px',
+        }}
+      >
+        {/* Corner brackets */}
+        <div style={{ position:'absolute', top:-1, left:-1, width:14, height:14, borderTop:`2px solid ${accentColor}`, borderLeft:`2px solid ${accentColor}` }} />
+        <div style={{ position:'absolute', top:-1, right:-1, width:14, height:14, borderTop:`2px solid ${accentColor}`, borderRight:`2px solid ${accentColor}` }} />
+        <div style={{ position:'absolute', bottom:-1, left:-1, width:14, height:14, borderBottom:`2px solid ${accentColor}`, borderLeft:`2px solid ${accentColor}` }} />
+        <div style={{ position:'absolute', bottom:-1, right:-1, width:14, height:14, borderBottom:`2px solid ${accentColor}`, borderRight:`2px solid ${accentColor}` }} />
 
-        <p className="text-[10px] text-red-400 uppercase tracking-[0.35em] mb-4 animate-pulse font-mono">
-          ⚠ &nbsp;CRISIS SIMULATION INITIATED&nbsp; ⚠
+        {/* Blink header */}
+        <p
+          className="blink text-center font-mono font-bold tracking-widest mb-5"
+          style={{ color: '#ff3232', fontSize: 11, letterSpacing: '0.3em', textShadow: '0 0 10px #ff323288' }}
+        >
+          ⚠ &nbsp;THREAT CONDITION ALPHA&nbsp; ⚠
         </p>
 
-        <h1 className="text-4xl sm:text-5xl font-black text-white mb-8 leading-tight">
-          {scenario.name}
+        {/* Icon */}
+        <div className="text-center mb-4" style={{ fontSize: 60, lineHeight: 1 }}>
+          {scenario.icon}
+        </div>
+
+        {/* Scenario name */}
+        <h1
+          className="text-center font-mono font-bold tracking-wide mb-6"
+          style={{ fontSize: 22, color: accentColor, textShadow: `0 0 14px ${accentColor}99` }}
+        >
+          {scenario.name.toUpperCase()}
         </h1>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-            <p className="text-3xl font-black text-red-400">+{scenario.impacts.priceChange}%</p>
-            <p className="text-[9px] text-slate-500 mt-1 uppercase tracking-widest">Brent Crude</p>
-          </div>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-            <p className="text-3xl font-black text-orange-400">{scenario.impacts.affectedVolume}%</p>
-            <p className="text-[9px] text-slate-500 mt-1 uppercase tracking-widest">Supply Hit</p>
-          </div>
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-            <p className="text-3xl font-black text-yellow-400">
-              {scenario.impacts.transitDelayDays > 0 ? `+${scenario.impacts.transitDelayDays}d` : 'NOW'}
+        {/* Stat cards */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {/* Price */}
+          <div
+            className="relative text-center p-3"
+            style={{ background: 'rgba(255,50,50,0.08)', border: '1px solid rgba(255,50,50,0.3)' }}
+          >
+            <div style={{ position:'absolute', top:-1, left:-1, width:8, height:8, borderTop:'1.5px solid #ff3232', borderLeft:'1.5px solid #ff3232' }} />
+            <div style={{ position:'absolute', bottom:-1, right:-1, width:8, height:8, borderBottom:'1.5px solid #ff3232', borderRight:'1.5px solid #ff3232' }} />
+            <p className="font-mono font-bold tabular-nums" style={{ fontSize: 24, color: '#ff3232', textShadow: '0 0 8px #ff323288' }}>
+              +{scenario.impacts.priceChange}%
             </p>
-            <p className="text-[9px] text-slate-500 mt-1 uppercase tracking-widest">Transit Delay</p>
+            <p className="hud-label mt-1" style={{ fontSize: 8 }}>BRENT CRUDE</p>
+          </div>
+
+          {/* Supply */}
+          <div
+            className="relative text-center p-3"
+            style={{ background: 'rgba(255,184,0,0.08)', border: '1px solid rgba(255,184,0,0.3)' }}
+          >
+            <div style={{ position:'absolute', top:-1, left:-1, width:8, height:8, borderTop:'1.5px solid #ffb800', borderLeft:'1.5px solid #ffb800' }} />
+            <div style={{ position:'absolute', bottom:-1, right:-1, width:8, height:8, borderBottom:'1.5px solid #ffb800', borderRight:'1.5px solid #ffb800' }} />
+            <p className="font-mono font-bold tabular-nums" style={{ fontSize: 24, color: '#ffb800', textShadow: '0 0 8px #ffb80088' }}>
+              {scenario.impacts.affectedVolume}%
+            </p>
+            <p className="hud-label mt-1" style={{ fontSize: 8 }}>SUPPLY HIT</p>
+          </div>
+
+          {/* Delay */}
+          <div
+            className="relative text-center p-3"
+            style={{ background: 'rgba(176,108,255,0.08)', border: '1px solid rgba(176,108,255,0.3)' }}
+          >
+            <div style={{ position:'absolute', top:-1, left:-1, width:8, height:8, borderTop:'1.5px solid #b06cff', borderLeft:'1.5px solid #b06cff' }} />
+            <div style={{ position:'absolute', bottom:-1, right:-1, width:8, height:8, borderBottom:'1.5px solid #b06cff', borderRight:'1.5px solid #b06cff' }} />
+            <p className="font-mono font-bold tabular-nums" style={{ fontSize: 24, color: '#b06cff', textShadow: '0 0 8px #b06cff88' }}>
+              {scenario.impacts.transitDelayDays > 0 ? `+${scenario.impacts.transitDelayDays}D` : 'NOW'}
+            </p>
+            <p className="hud-label mt-1" style={{ fontSize: 8 }}>TRANSIT DELAY</p>
           </div>
         </div>
 
-        <p className="mt-6 text-[10px] text-slate-600 font-mono animate-pulse">
-          Activating AI procurement intelligence...
+        {/* Footer */}
+        <p className="blink-slow text-center font-mono" style={{ fontSize: 10, color: 'var(--c-muted)', letterSpacing: '0.15em' }}>
+          ACTIVATING AI PROCUREMENT INTELLIGENCE...
         </p>
       </div>
     </div>

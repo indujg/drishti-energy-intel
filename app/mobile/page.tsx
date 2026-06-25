@@ -1,10 +1,19 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Shield, Activity, AlertTriangle, TrendingUp, Zap, Globe, Radio } from 'lucide-react'
+import { Radio } from 'lucide-react'
 
 interface SimResult {
-  scenario?: { name: string; icon: string; impacts: { priceChange: number; affectedVolume: number; transitDelayDays: number; sprDaysRemaining: number } }
+  scenario?: {
+    name: string
+    icon: string
+    impacts: {
+      priceChange: number
+      affectedVolume: number
+      transitDelayDays: number
+      sprDaysRemaining: number
+    }
+  }
   procurement?: { summary: string }
 }
 
@@ -15,11 +24,44 @@ const RISK_MAP: Record<string, number> = {
 const BASE_BRENT = 87.42
 
 const SCENARIOS = [
-  { id: 'hormuz_closure', icon: '🔴', label: 'Hormuz Closure', color: 'border-red-500 bg-red-500/10 text-red-400' },
-  { id: 'redsea_shutdown', icon: '🟠', label: 'Red Sea Shutdown', color: 'border-orange-500 bg-orange-500/10 text-orange-400' },
-  { id: 'opec_cut', icon: '🟡', label: 'OPEC+ Cut', color: 'border-yellow-500 bg-yellow-500/10 text-yellow-400' },
-  { id: 'combined_crisis', icon: '⚫', label: 'Combined Crisis', color: 'border-purple-500 bg-purple-500/10 text-purple-400' },
+  { id: 'hormuz_closure',  icon: '🔴', label: 'HORMUZ CLOSURE',   accent: '#ff3232' },
+  { id: 'redsea_shutdown', icon: '🟠', label: 'RED SEA SHUTDOWN', accent: '#ffb800' },
+  { id: 'opec_cut',        icon: '🟡', label: 'OPEC+ CUT',        accent: '#ffb800' },
+  { id: 'combined_crisis', icon: '⚫', label: 'COMBINED CRISIS',  accent: '#b06cff' },
 ]
+
+// ── Corner brackets ────────────────────────────────────────
+function Corners({ color = '#00d4ff', size = 8, thickness = 1.5 }: { color?: string; size?: number; thickness?: number }) {
+  const s: React.CSSProperties = { position: 'absolute', width: size, height: size, pointerEvents: 'none' }
+  return (
+    <>
+      <div style={{ ...s, top: -1, left: -1, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, top: -1, right: -1, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, bottom: -1, left: -1, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, bottom: -1, right: -1, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+    </>
+  )
+}
+
+// ── Segmented bar ──────────────────────────────────────────
+function SegBar({ value, total = 16, color }: { value: number; total?: number; color: string }) {
+  const filled = Math.round((value / 100) * total)
+  return (
+    <div style={{ display: 'flex', gap: 2 }}>
+      {Array.from({ length: total }, (_, i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            height: 5,
+            background: i < filled ? color : '#153030',
+            boxShadow: i < filled ? `0 0 3px ${color}66` : 'none',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 
 export default function MobileWarRoom() {
   const [brent, setBrent] = useState(BASE_BRENT)
@@ -77,182 +119,371 @@ export default function MobileWarRoom() {
     await fetch('/api/simulate', { method: 'DELETE' }).catch(() => {})
   }, [])
 
-  const riskColor = overallRisk >= 80 ? '#ef4444' : overallRisk >= 60 ? '#f97316' : '#eab308'
-  const riskLabel = overallRisk >= 80 ? 'CRITICAL' : overallRisk >= 60 ? 'HIGH' : 'ELEVATED'
+  const riskColor =
+    overallRisk >= 80 ? '#ff3232' :
+    overallRisk >= 60 ? '#ffb800' : '#ffb800'
+
+  const riskLabel =
+    overallRisk >= 80 ? 'CRITICAL' :
+    overallRisk >= 60 ? 'HIGH' : 'ELEVATED'
+
+  const brentColor = activeScenario ? '#ff3232' : '#00d4ff'
   const brentChange = brent - BASE_BRENT
 
   return (
-    <div className="min-h-screen bg-[#050914] text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-[#080c18]/90 backdrop-blur-sm border-b border-slate-800 px-4 py-3 flex items-center gap-3">
-        <span className="text-xl">🛢️</span>
+    <div
+      className="min-h-screen font-mono"
+      style={{ background: 'var(--c-bg)', color: 'var(--c-text)' }}
+    >
+      {/* ── HEADER ─────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3"
+        style={{ background: '#020e0eee', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--c-border)' }}
+      >
         <div>
-          <h1 className="text-sm font-black text-orange-400 tracking-widest leading-none">DRISHTI</h1>
-          <p className="text-[9px] text-slate-600 uppercase tracking-widest">Mobile War Room</p>
+          <h1
+            className="font-mono font-bold tracking-widest"
+            style={{ fontSize: 13, color: '#00d4ff', textShadow: '0 0 8px #00d4ff88', lineHeight: 1.1 }}
+          >
+            DRISHTI
+          </h1>
+          <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em' }}>दृष्टि · MOBILE WAR ROOM</p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full border" style={{ borderColor: `${riskColor}40`, background: `${riskColor}10` }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: riskColor }} />
-            <span className="text-[10px] font-bold" style={{ color: riskColor }}>{riskLabel} {overallRisk}</span>
+
+        <div className="ml-auto flex items-center gap-3">
+          <div
+            className="flex items-center gap-1.5"
+            style={{
+              border: `1px solid ${riskColor}44`,
+              background: `${riskColor}0d`,
+              padding: '3px 8px',
+              fontSize: 9,
+              letterSpacing: '0.15em',
+            }}
+          >
+            <span
+              className="blink"
+              style={{ width: 5, height: 5, borderRadius: '50%', background: riskColor, display: 'inline-block' }}
+            />
+            <span style={{ color: riskColor, fontWeight: 700 }}>{riskLabel}</span>
+            <span style={{ color: riskColor }}>{overallRisk}</span>
           </div>
-          <a href="https://drishti-intel.vercel.app" className="text-[10px] text-slate-500 hover:text-slate-300">Desktop →</a>
+
+          <div className="flex items-center gap-1" style={{ fontSize: 9, color: '#00ff87' }}>
+            <Radio style={{ width: 9, height: 9 }} className="blink-slow" />
+            <span style={{ letterSpacing: '0.1em' }}>LIVE</span>
+          </div>
+
+          <a
+            href="https://drishti-intel.vercel.app"
+            style={{ fontSize: 9, color: 'var(--c-muted)', letterSpacing: '0.1em', textDecoration: 'none' }}
+          >
+            DESKTOP →
+          </a>
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-4 max-w-lg mx-auto">
-        {/* Brent + SPR row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-4">
-            <TrendingUp className="w-4 h-4 text-orange-400 mb-1" />
-            <p className="text-2xl font-black tabular-nums" style={{ color: activeScenario ? '#ef4444' : '#f97316' }}>
+      <div className="px-4 py-4 max-w-lg mx-auto" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+        {/* ── THREAT INDEX ───────────────────────────────── */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: `1px solid ${riskColor}44`, padding: '14px 16px' }}
+        >
+          <Corners color={riskColor} size={8} />
+          <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4 }}>
+            SYS: COMPOSITE THREAT INDEX
+          </p>
+          <div className="flex items-end gap-3 mb-2">
+            <span
+              className="font-mono font-bold tabular-nums"
+              style={{ fontSize: 48, color: riskColor, textShadow: `0 0 16px ${riskColor}88`, lineHeight: 1 }}
+            >
+              {overallRisk}
+            </span>
+            <div style={{ paddingBottom: 6 }}>
+              <p style={{ fontSize: 11, color: riskColor, fontWeight: 700, letterSpacing: '0.15em' }}>{riskLabel}</p>
+              <p style={{ fontSize: 8, color: 'var(--c-muted)' }}>/ 100</p>
+            </div>
+          </div>
+          <SegBar value={overallRisk} color={riskColor} />
+        </div>
+
+        {/* ── BRENT + SPR ────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {/* Brent */}
+          <div
+            className="relative font-mono"
+            style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+          >
+            <Corners color={brentColor} size={7} />
+            <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 4 }}>DATA: BRENT/BBL</p>
+            <p
+              className="tabular-nums font-bold"
+              style={{ fontSize: 22, color: brentColor, textShadow: `0 0 10px ${brentColor}88`, lineHeight: 1.1 }}
+            >
               ${brent.toFixed(2)}
             </p>
-            <p className="text-[9px] text-slate-500">Brent / bbl</p>
-            <p className={`text-[10px] font-bold mt-0.5 ${brentChange >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+            <p style={{ fontSize: 9, color: brentChange >= 0 ? '#ff3232' : '#00ff87', fontWeight: 700, marginTop: 4 }}>
               {brentChange >= 0 ? '▲' : '▼'} {brentChange >= 0 ? '+' : ''}{((brentChange / BASE_BRENT) * 100).toFixed(1)}%
             </p>
           </div>
-          <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-4">
-            <Shield className="w-4 h-4 text-yellow-400 mb-1" />
-            <p className="text-2xl font-black text-yellow-400">
-              {activeScenario && simResult?.scenario ? simResult.scenario.impacts.sprDaysRemaining : 9.5}d
+
+          {/* SPR */}
+          <div
+            className="relative font-mono"
+            style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+          >
+            <Corners color="#ffb800" size={7} />
+            <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 4 }}>SYS: SPR COVER</p>
+            <p
+              className="tabular-nums font-bold"
+              style={{ fontSize: 22, color: '#ffb800', textShadow: '0 0 10px #ffb80088', lineHeight: 1.1 }}
+            >
+              {activeScenario && simResult?.scenario ? simResult.scenario.impacts.sprDaysRemaining : 9.5}D
             </p>
-            <p className="text-[9px] text-slate-500">SPR cover</p>
-            <div className="mt-1.5 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-1000"
-                style={{ width: `${((activeScenario && simResult?.scenario ? simResult.scenario.impacts.sprDaysRemaining : 9.5) / 30) * 100}%`, background: '#eab308' }}
+            <div style={{ marginTop: 6 }}>
+              <SegBar
+                value={((activeScenario && simResult?.scenario ? simResult.scenario.impacts.sprDaysRemaining : 9.5) / 30) * 100}
+                color="#ffb800"
+                total={12}
               />
             </div>
           </div>
         </div>
 
-        {/* Live metrics strip */}
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3 flex justify-between text-center">
-          <div>
-            <p className="text-lg font-black text-blue-400">{vesselCount}</p>
-            <p className="text-[9px] text-slate-500">Vessels</p>
-          </div>
-          <div>
-            <p className="text-lg font-black text-red-400">78</p>
-            <p className="text-[9px] text-slate-500">Hormuz</p>
-          </div>
-          <div>
-            <p className="text-lg font-black text-orange-400">65</p>
-            <p className="text-[9px] text-slate-500">Red Sea</p>
-          </div>
-          <div>
-            <p className="text-lg font-black text-green-400">12</p>
-            <p className="text-[9px] text-slate-500">Cape</p>
-          </div>
-          <div className="flex flex-col items-center justify-center">
-            <Radio className="w-4 h-4 text-green-400 animate-pulse" />
-            <p className="text-[9px] text-slate-500">Live</p>
+        {/* ── METRICS STRIP ──────────────────────────────── */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '10px 16px' }}
+        >
+          <Corners color="#00d4ff" size={7} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+            {[
+              { val: vesselCount, label: 'VESSELS', color: '#00d4ff' },
+              { val: 78,         label: 'HORMUZ',  color: '#ff3232' },
+              { val: 65,         label: 'RED SEA', color: '#ffb800' },
+              { val: 12,         label: 'CAPE',    color: '#00ff87' },
+            ].map(item => (
+              <div key={item.label}>
+                <p style={{ fontSize: 18, fontWeight: 700, color: item.color, textShadow: `0 0 8px ${item.color}66` }}>
+                  {item.val}
+                </p>
+                <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.1em' }}>{item.label}</p>
+              </div>
+            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <Radio style={{ width: 14, height: 14, color: '#00ff87' }} className="blink-slow" />
+              <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.1em' }}>LIVE</p>
+            </div>
           </div>
         </div>
 
-        {/* Crisis simulation */}
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-4">
+        {/* ── CRISIS SCENARIO BUTTONS ────────────────────── */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+        >
+          <Corners color="#ff3232" size={7} />
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Crisis Simulation</h2>
+            <span className="blink" style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3232', display: 'inline-block' }} />
+            <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--c-text)' }}>SIGINT: CRISIS SIMULATION</p>
             {activeScenario && (
-              <span className="ml-auto text-[10px] text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-full animate-pulse">
+              <span
+                className="ml-auto blink"
+                style={{ fontSize: 8, color: '#ff3232', border: '1px solid #ff323244', padding: '2px 7px', letterSpacing: '0.15em' }}
+              >
                 ACTIVE
               </span>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {SCENARIOS.map(s => (
-              <button
-                key={s.id}
-                onClick={() => triggerScenario(s.id)}
-                disabled={loading === s.id}
-                className={`relative p-3 rounded-lg border text-left transition-all active:scale-95 cursor-pointer
-                  ${activeScenario === s.id ? s.color : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}
-              >
-                {loading === s.id && (
-                  <div className="absolute inset-0 rounded-lg bg-slate-900/60 flex items-center justify-center">
-                    <div className="w-4 h-4 border border-orange-500 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-                <p className="text-base mb-1">{s.icon}</p>
-                <p className="text-xs font-semibold leading-tight">{s.label}</p>
-              </button>
-            ))}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {SCENARIOS.map(s => {
+              const isActive = activeScenario === s.id
+              const isLoading = loading === s.id
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => triggerScenario(s.id)}
+                  disabled={isLoading}
+                  className="relative font-mono text-left cursor-pointer"
+                  style={{
+                    background: isActive ? `${s.accent}14` : 'transparent',
+                    border: `1px solid ${isActive ? s.accent : 'var(--c-border)'}`,
+                    padding: '10px 12px',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <Corners color={isActive ? s.accent : 'var(--c-muted)'} size={6} thickness={1} />
+                  {isLoading && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ background: 'rgba(2,12,12,0.7)' }}
+                    >
+                      <div
+                        style={{
+                          width: 14, height: 14,
+                          border: `1px solid ${s.accent}`,
+                          borderTopColor: 'transparent',
+                          borderRadius: '50%',
+                          animation: 'spin 0.8s linear infinite',
+                        }}
+                      />
+                    </div>
+                  )}
+                  <p style={{ fontSize: 14, marginBottom: 4 }}>{s.icon}</p>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: isActive ? s.accent : 'var(--c-muted)', letterSpacing: '0.1em' }}>
+                    {s.label}
+                  </p>
+                </button>
+              )
+            })}
           </div>
+
           <button
             onClick={reset}
-            className="mt-3 w-full py-2 text-xs text-slate-600 hover:text-slate-400 border border-slate-800 rounded-lg hover:border-slate-600 transition-colors cursor-pointer"
+            className="font-mono cursor-pointer"
+            style={{
+              marginTop: 10,
+              width: '100%',
+              padding: '7px 0',
+              fontSize: 9,
+              letterSpacing: '0.15em',
+              color: 'var(--c-muted)',
+              background: 'transparent',
+              border: '1px solid var(--c-border)',
+              textTransform: 'uppercase',
+            }}
           >
-            Reset to Normal
+            [ RESET TO NOMINAL ]
           </button>
         </div>
 
-        {/* AI Summary */}
+        {/* ── CRISIS RESULT ──────────────────────────────── */}
         {activeScenario && simResult?.scenario && (
-          <div className="bg-red-500/5 border border-red-500/30 rounded-xl p-4">
+          <div
+            className="relative font-mono"
+            style={{ background: 'rgba(255,50,50,0.05)', border: '1px solid rgba(255,50,50,0.35)', padding: '12px 14px' }}
+          >
+            <Corners color="#ff3232" size={8} />
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-              <span className="text-xs font-bold text-red-400">SIMULATION ACTIVE</span>
+              <span className="blink" style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff3232', display: 'inline-block', boxShadow: '0 0 6px #ff3232' }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: '#ff3232', letterSpacing: '0.2em' }}>SIMULATION ACTIVE</span>
             </div>
-            <p className="text-sm font-bold text-white mb-2">{simResult.scenario.icon} {simResult.scenario.name}</p>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="text-center">
-                <p className="text-lg font-black text-red-400">+{simResult.scenario.impacts.priceChange}%</p>
-                <p className="text-[9px] text-slate-500">Brent</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-black text-orange-400">{simResult.scenario.impacts.affectedVolume}%</p>
-                <p className="text-[9px] text-slate-500">Supply Hit</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-black text-yellow-400">+{simResult.scenario.impacts.transitDelayDays}d</p>
-                <p className="text-[9px] text-slate-500">Delay</p>
-              </div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text)', marginBottom: 10 }}>
+              {simResult.scenario.icon} {simResult.scenario.name.toUpperCase()}
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+              {[
+                { val: `+${simResult.scenario.impacts.priceChange}%`, label: 'BRENT', color: '#ff3232' },
+                { val: `${simResult.scenario.impacts.affectedVolume}%`, label: 'SUPPLY HIT', color: '#ffb800' },
+                { val: `+${simResult.scenario.impacts.transitDelayDays}D`, label: 'DELAY', color: '#b06cff' },
+              ].map(stat => (
+                <div
+                  key={stat.label}
+                  className="relative text-center"
+                  style={{ background: `${stat.color}0d`, border: `1px solid ${stat.color}33`, padding: '8px 4px' }}
+                >
+                  <Corners color={stat.color} size={5} thickness={1} />
+                  <p style={{ fontSize: 18, fontWeight: 700, color: stat.color, textShadow: `0 0 8px ${stat.color}66` }}>
+                    {stat.val}
+                  </p>
+                  <p style={{ fontSize: 7, color: 'var(--c-muted)', letterSpacing: '0.1em', marginTop: 2 }}>{stat.label}</p>
+                </div>
+              ))}
             </div>
+
             {simResult.procurement?.summary && (
-              <p className="text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-lg p-2.5 leading-relaxed">
-                {simResult.procurement.summary}
+              <p
+                style={{
+                  fontSize: 10,
+                  color: '#b06cff',
+                  background: 'rgba(176,108,255,0.08)',
+                  border: '1px solid rgba(176,108,255,0.25)',
+                  padding: '8px 10px',
+                  lineHeight: 1.6,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                ASSET: AI DIRECTIVE — {simResult.procurement.summary}
               </p>
             )}
           </div>
         )}
 
-        {/* Risk feed */}
+        {/* ── INTEL FEED ─────────────────────────────────── */}
         {news.length > 0 && (
-          <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-4">
+          <div
+            className="relative font-mono"
+            style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+          >
+            <Corners color="#00d4ff" size={7} />
             <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-4 h-4 text-orange-400" />
-              <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Intelligence Feed</h2>
+              <span className="blink-slow" style={{ width: 5, height: 5, borderRadius: '50%', background: '#00d4ff', display: 'inline-block' }} />
+              <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', color: 'var(--c-text)' }}>SIGINT: INTELLIGENCE FEED</p>
             </div>
-            <div className="space-y-3">
-              {news.map(n => (
-                <div key={n.id} className="border-l-2 border-orange-500/40 pl-3">
-                  <p className="text-[11px] text-slate-300 leading-tight">{n.headline}</p>
-                  <p className="text-[9px] text-slate-600 mt-0.5">{n.source} · Risk {n.risk}/100</p>
-                </div>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {news.map(n => {
+                const c = n.risk >= 70 ? '#ff3232' : n.risk >= 45 ? '#ffb800' : '#ffb800'
+                return (
+                  <div key={n.id} style={{ borderLeft: `2px solid ${c}55`, paddingLeft: 10 }}>
+                    <p style={{ fontSize: 10, color: 'var(--c-text)', lineHeight: 1.5 }}>{n.headline}</p>
+                    <p style={{ fontSize: 8, color: 'var(--c-muted)', marginTop: 2 }}>
+                      {n.source.toUpperCase()} · RISK <span style={{ color: c }}>{n.risk}</span>/100
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
 
-        {/* Links */}
-        <div className="grid grid-cols-2 gap-3 pb-6">
+        {/* ── NAV LINKS ──────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, paddingBottom: 24 }}>
           <a
             href="https://drishti-intel.vercel.app"
-            className="py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-center text-xs font-bold text-orange-400"
+            className="relative font-mono text-center"
+            style={{
+              display: 'block',
+              padding: '12px 0',
+              background: 'rgba(0,212,255,0.07)',
+              border: '1px solid rgba(0,212,255,0.3)',
+              fontSize: 9,
+              fontWeight: 700,
+              color: '#00d4ff',
+              letterSpacing: '0.15em',
+              textDecoration: 'none',
+            }}
           >
-            🌍 Full War Room
+            <Corners color="#00d4ff" size={7} />
+            🌍 FULL WAR ROOM
           </a>
           <a
             href="/nfc"
-            className="py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-center text-xs font-bold text-slate-400"
+            className="relative font-mono text-center"
+            style={{
+              display: 'block',
+              padding: '12px 0',
+              background: 'var(--c-panel)',
+              border: '1px solid var(--c-border)',
+              fontSize: 9,
+              fontWeight: 700,
+              color: 'var(--c-muted)',
+              letterSpacing: '0.15em',
+              textDecoration: 'none',
+            }}
           >
-            📱 NFC Briefing
+            <Corners color="var(--c-muted)" size={7} />
+            📱 NFC BRIEFING
           </a>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   )
 }

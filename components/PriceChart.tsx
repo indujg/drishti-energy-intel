@@ -30,44 +30,71 @@ export default function PriceChart({ crisisActive, priceImpact }: { crisisActive
   }, [crisisActive, priceImpact])
 
   const current = data[data.length - 1]?.price ?? BASE
-  const color = crisisActive ? '#ef4444' : '#f97316'
+  const strokeColor = crisisActive ? '#ff3232' : '#00d4ff'
+  const fillColor = crisisActive ? 'rgba(255,50,50,0.18)' : 'rgba(0,212,255,0.18)'
   const change = current - BASE
   const pct = ((change / BASE) * 100).toFixed(1)
 
   return (
-    <div className="bg-[#0a0e1a]/90 border border-slate-800 rounded-xl px-4 pt-3 pb-1">
-      <div className="flex justify-between items-start mb-1">
+    <div className="panel relative" style={{ borderRadius: 4, padding: '12px 14px 6px' }}>
+      <div className="corner-tl" /><div className="corner-tr" /><div className="corner-bl" /><div className="corner-br" />
+
+      {/* Header label */}
+      <div className="flex justify-between items-start mb-2">
         <div>
-          <p className="text-[9px] text-slate-500 uppercase tracking-widest">Brent Crude Live</p>
-          <p className="text-2xl font-black tabular-nums" style={{ color }}>${current.toFixed(2)}</p>
+          <p className="hud-label" style={{ color: 'var(--c-muted)', letterSpacing: '0.18em' }}>
+            DATA: BRENT CRUDE USD/BBL
+          </p>
+          <p
+            className="font-mono tabular-nums"
+            style={{
+              fontSize: 26,
+              fontWeight: 700,
+              color: strokeColor,
+              textShadow: `0 0 10px ${strokeColor}88`,
+              lineHeight: 1.1,
+              marginTop: 2,
+            }}
+          >
+            ${current.toFixed(2)}
+          </p>
         </div>
-        <div className="text-right mt-1">
-          <p className={`text-xs font-bold ${change >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+        <div className="text-right" style={{ marginTop: 2 }}>
+          <p
+            className="font-mono text-xs font-bold"
+            style={{ color: change >= 0 ? '#ff3232' : '#00ff87' }}
+          >
             {change >= 0 ? '▲' : '▼'} {change >= 0 ? '+' : ''}{pct}%
           </p>
-          <p className="text-[9px] text-slate-600">per barrel</p>
+          <p className="hud-label" style={{ marginTop: 2 }}>PER BARREL</p>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={56}>
-        <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+
+      <ResponsiveContainer width="100%" height={52}>
+        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
           <defs>
-            <linearGradient id="brentGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            <linearGradient id="brentGradHUD" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={strokeColor} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={strokeColor} stopOpacity={0} />
             </linearGradient>
           </defs>
           <YAxis domain={['auto', 'auto']} hide />
           <Area
             type="monotone"
             dataKey="price"
-            stroke={color}
-            strokeWidth={2}
-            fill="url(#brentGrad)"
+            stroke={strokeColor}
+            strokeWidth={1.5}
+            fill="url(#brentGradHUD)"
             dot={false}
             isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>
+
+      {/* Bottom tick label */}
+      <p className="hud-label text-right" style={{ marginTop: 2, fontSize: 8 }}>
+        T-24H → T+00:00
+      </p>
     </div>
   )
 }

@@ -1,14 +1,47 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Shield, TrendingUp, AlertTriangle, Radio } from 'lucide-react'
+import { Radio } from 'lucide-react'
 
 const BASE_BRENT = 87.42
 const CORRIDORS = [
-  { name: 'Hormuz', risk: 78, color: '#ef4444', share: '40%' },
-  { name: 'Red Sea', risk: 65, color: '#f97316', share: '15%' },
-  { name: 'Cape',   risk: 12, color: '#22c55e', share: '18%' },
+  { name: 'HORMUZ', risk: 78, color: '#ff3232', share: '40%' },
+  { name: 'RED SEA', risk: 65, color: '#ffb800', share: '15%' },
+  { name: 'CAPE',   risk: 12, color: '#00ff87', share: '18%' },
 ]
+
+// ── Corner brackets ─────────────────────────────────────
+function Corners({ color = '#00d4ff', size = 8, thickness = 1.5 }: { color?: string; size?: number; thickness?: number }) {
+  const s: React.CSSProperties = { position: 'absolute', width: size, height: size, pointerEvents: 'none' }
+  return (
+    <>
+      <div style={{ ...s, top: -1, left: -1, borderTop: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, top: -1, right: -1, borderTop: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, bottom: -1, left: -1, borderBottom: `${thickness}px solid ${color}`, borderLeft: `${thickness}px solid ${color}` }} />
+      <div style={{ ...s, bottom: -1, right: -1, borderBottom: `${thickness}px solid ${color}`, borderRight: `${thickness}px solid ${color}` }} />
+    </>
+  )
+}
+
+// ── Segmented bar ────────────────────────────────────────
+function SegBar({ value, total = 14, color }: { value: number; total?: number; color: string }) {
+  const filled = Math.round((value / 100) * total)
+  return (
+    <div style={{ display: 'flex', gap: 2 }}>
+      {Array.from({ length: total }, (_, i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            height: 5,
+            background: i < filled ? color : '#153030',
+            boxShadow: i < filled ? `0 0 3px ${color}66` : 'none',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 
 export default function NFCBriefing() {
   const [time, setTime] = useState<Date | null>(null)
@@ -47,117 +80,217 @@ export default function NFCBriefing() {
   const overallRisk = 58
 
   return (
-    <div className="min-h-screen bg-[#050914] flex flex-col p-4 max-w-sm mx-auto text-white">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-xl">
-          🛢️
+    <div
+      className="min-h-screen font-mono p-4 flex flex-col"
+      style={{ background: 'var(--c-bg)', color: 'var(--c-text)', maxWidth: 400, margin: '0 auto' }}
+    >
+      {/* ── MISSION BRIEFING HEADER ─────────────────────── */}
+      <div
+        className="relative font-mono text-center mb-5"
+        style={{ border: '1px solid #00d4ff44', padding: '10px 14px' }}
+      >
+        <Corners color="#00d4ff" size={10} thickness={2} />
+        <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 4 }}>
+          [ MISSION BRIEFING ]
+        </p>
+        <h1
+          className="font-bold"
+          style={{ fontSize: 18, color: '#00d4ff', textShadow: '0 0 14px #00d4ff88', letterSpacing: '0.15em' }}
+        >
+          DRISHTI
+        </h1>
+        <p style={{ fontSize: 9, color: 'var(--c-muted)', letterSpacing: '0.2em', marginTop: 2 }}>
+          ENERGY INTELLIGENCE SYSTEM
+        </p>
+      </div>
+
+      {/* ── STATUS ROW ─────────────────────────────────── */}
+      <div
+        className="relative font-mono flex justify-between items-center mb-4"
+        style={{ border: '1px solid var(--c-border)', padding: '8px 14px' }}
+      >
+        <Corners color="var(--c-muted)" size={7} thickness={1} />
+        <div className="flex items-center gap-2">
+          <Radio style={{ width: 10, height: 10, color: '#00ff87' }} className="blink-slow" />
+          <span style={{ fontSize: 9, color: '#00ff87', letterSpacing: '0.15em' }}>SYS: ONLINE</span>
         </div>
-        <div>
-          <h1 className="text-lg font-black text-orange-400 tracking-widest">DRISHTI</h1>
-          <p className="text-[10px] text-slate-600 font-mono">
-            {time ? time.toUTCString().slice(0, 25) : '—'}
+        <span style={{ fontSize: 9, color: 'var(--c-muted)', letterSpacing: '0.05em' }}>
+          {time ? time.toUTCString().slice(0, 25) : '—'}
+        </span>
+      </div>
+
+      {/* ── COMPOSITE THREAT INDEX ─────────────────────── */}
+      <div
+        className="relative font-mono mb-4 text-center"
+        style={{ background: 'var(--c-panel)', border: '1px solid #ffb80044', padding: '16px 14px' }}
+      >
+        <Corners color="#ffb800" size={9} thickness={2} />
+        <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em', marginBottom: 6 }}>
+          SYS: COMPOSITE THREAT INDEX
+        </p>
+        <div
+          className="font-bold tabular-nums"
+          style={{ fontSize: 60, color: '#ffb800', textShadow: '0 0 20px #ffb80099', lineHeight: 1 }}
+        >
+          {overallRisk}
+        </div>
+        <p style={{ fontSize: 11, color: '#ffb800', fontWeight: 700, letterSpacing: '0.2em', margin: '6px 0 10px' }}>
+          ELEVATED
+        </p>
+        <SegBar value={overallRisk} color="#ffb800" total={14} />
+        <div className="flex justify-between mt-2">
+          <span style={{ fontSize: 7, color: 'var(--c-xmuted)' }}>0 — NOMINAL</span>
+          <span style={{ fontSize: 7, color: 'var(--c-xmuted)' }}>100 — CRITICAL</span>
+        </div>
+      </div>
+
+      {/* ── KEY STATS 2x2 ──────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        {/* Brent */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px' }}
+        >
+          <Corners color="#00d4ff" size={7} />
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 3 }}>DATA: BRENT/BBL</p>
+          <p
+            className="font-bold tabular-nums"
+            style={{ fontSize: 20, color: '#00d4ff', textShadow: '0 0 10px #00d4ff88', lineHeight: 1.1 }}
+          >
+            ${brent.toFixed(2)}
           </p>
-        </div>
-        <div className="ml-auto flex items-center gap-1.5 text-[10px] text-green-400">
-          <Radio className="w-3 h-3 animate-pulse" />
-          <span>LIVE</span>
-        </div>
-      </div>
-
-      {/* Risk gauge */}
-      <div className="bg-[#0a0e1a] border border-orange-500/25 rounded-2xl p-5 mb-4 text-center">
-        <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Overall Supply Risk</p>
-        <div className="text-7xl font-black text-orange-400 tabular-nums mb-1">{overallRisk}</div>
-        <div className="text-sm text-orange-300 font-semibold mb-4">🟠 ELEVATED</div>
-        <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full" />
-          <div
-            className="absolute top-0 bottom-0 right-0 bg-[#0a0e1a] rounded-full transition-all"
-            style={{ width: `${100 - overallRisk}%` }}
-          />
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[9px] text-slate-700">0 — NORMAL</span>
-          <span className="text-[9px] text-slate-700">100 — CRITICAL</span>
-        </div>
-      </div>
-
-      {/* Key stats */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5">
-          <TrendingUp className="w-4 h-4 text-orange-400 mb-1" />
-          <p className="text-2xl font-black text-orange-400 tabular-nums">${brent.toFixed(2)}</p>
-          <p className="text-[9px] text-slate-500">Brent Crude / bbl</p>
-          <p className={`text-[10px] font-bold mt-0.5 ${change >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+          <p style={{ fontSize: 9, color: change >= 0 ? '#ff3232' : '#00ff87', fontWeight: 700, marginTop: 3 }}>
             {change >= 0 ? '▲' : '▼'} {change >= 0 ? '+' : ''}{pct}%
           </p>
         </div>
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5">
-          <Shield className="w-4 h-4 text-yellow-400 mb-1" />
-          <p className="text-2xl font-black text-yellow-400">9.5d</p>
-          <p className="text-[9px] text-slate-500">SPR Days Cover</p>
-          <div className="mt-1.5 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div className="h-full bg-yellow-500 rounded-full" style={{ width: '31.7%' }} />
+
+        {/* SPR */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px' }}
+        >
+          <Corners color="#ffb800" size={7} />
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 3 }}>SYS: SPR COVER</p>
+          <p
+            className="font-bold tabular-nums"
+            style={{ fontSize: 20, color: '#ffb800', textShadow: '0 0 10px #ffb80088', lineHeight: 1.1 }}
+          >
+            9.5D
+          </p>
+          <div style={{ marginTop: 5 }}>
+            <SegBar value={32} color="#ffb800" total={10} />
           </div>
         </div>
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5">
-          <p className="text-[9px] text-slate-500 mb-1 uppercase">Hormuz Risk</p>
-          <p className="text-2xl font-black text-red-400">78<span className="text-sm text-slate-500">/100</span></p>
-          <p className="text-[9px] text-slate-500 mt-0.5">40% India supply</p>
+
+        {/* Hormuz */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px' }}
+        >
+          <Corners color="#ff3232" size={7} />
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 3 }}>SIGINT: HORMUZ</p>
+          <p
+            className="font-bold tabular-nums"
+            style={{ fontSize: 20, color: '#ff3232', textShadow: '0 0 10px #ff323288', lineHeight: 1.1 }}
+          >
+            78<span style={{ fontSize: 10, color: 'var(--c-muted)' }}>/100</span>
+          </p>
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', marginTop: 3, letterSpacing: '0.08em' }}>40% INDIA SUPPLY</p>
         </div>
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5">
-          <p className="text-[9px] text-slate-500 mb-1 uppercase">Live Vessels</p>
-          <p className="text-2xl font-black text-blue-400">{vesselCount}</p>
-          <p className="text-[9px] text-slate-500 mt-0.5">tankers tracked</p>
+
+        {/* Vessels */}
+        <div
+          className="relative font-mono"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px' }}
+        >
+          <Corners color="#00d4ff" size={7} />
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', letterSpacing: '0.15em', marginBottom: 3 }}>ASSET: VESSELS</p>
+          <p
+            className="font-bold tabular-nums"
+            style={{ fontSize: 20, color: '#00d4ff', textShadow: '0 0 10px #00d4ff88', lineHeight: 1.1 }}
+          >
+            {vesselCount}
+          </p>
+          <p style={{ fontSize: 7, color: 'var(--c-muted)', marginTop: 3, letterSpacing: '0.08em' }}>TANKERS TRACKED</p>
         </div>
       </div>
 
-      {/* Corridor risk */}
-      <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5 mb-4">
-        <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-3">Corridor Risk</p>
-        <div className="space-y-2.5">
+      {/* ── CORRIDOR RISK ──────────────────────────────── */}
+      <div
+        className="relative font-mono mb-4"
+        style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+      >
+        <Corners color="var(--c-muted)" size={7} />
+        <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em', marginBottom: 10 }}>
+          SIGINT: CORRIDOR RISK INDEX
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {CORRIDORS.map(c => (
-            <div key={c.name} className="flex items-center gap-3">
-              <span className="text-[11px] text-slate-400 w-16">{c.name}</span>
-              <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${c.risk}%`, background: c.color }} />
+            <div key={c.name}>
+              <div className="flex justify-between mb-1">
+                <span style={{ fontSize: 9, color: 'var(--c-text)', letterSpacing: '0.1em' }}>{c.name}</span>
+                <div className="flex gap-3">
+                  <span style={{ fontSize: 9, fontWeight: 700, color: c.color }}>{c.risk}</span>
+                  <span style={{ fontSize: 8, color: 'var(--c-muted)' }}>{c.share}</span>
+                </div>
               </div>
-              <span className="text-[11px] font-bold w-6 text-right" style={{ color: c.color }}>{c.risk}</span>
-              <span className="text-[9px] text-slate-600 w-8">{c.share}</span>
+              <SegBar value={c.risk} color={c.color} total={14} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Intelligence feed */}
+      {/* ── INTEL FEED ─────────────────────────────────── */}
       {news.length > 0 && (
-        <div className="bg-[#0a0e1a] border border-slate-800 rounded-xl p-3.5 mb-4">
+        <div
+          className="relative font-mono mb-4"
+          style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border)', padding: '12px 14px' }}
+        >
+          <Corners color="#ff3232" size={7} />
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Intelligence Feed</p>
+            <span className="blink" style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3232', display: 'inline-block' }} />
+            <p style={{ fontSize: 8, letterSpacing: '0.2em', color: 'var(--c-text)' }}>SIGINT: INTEL FEED</p>
           </div>
-          <div className="space-y-2.5">
-            {news.map(n => (
-              <div key={n.id} className="border-l-2 border-red-500/40 pl-2.5">
-                <p className="text-[11px] text-slate-300 leading-tight">{n.headline}</p>
-                <p className="text-[9px] text-slate-600 mt-0.5">{n.source} · Risk {n.risk}/100</p>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {news.map(n => {
+              const c = n.risk >= 70 ? '#ff3232' : '#ffb800'
+              return (
+                <div key={n.id} style={{ borderLeft: `2px solid ${c}55`, paddingLeft: 10 }}>
+                  <p style={{ fontSize: 10, color: 'var(--c-text)', lineHeight: 1.5 }}>{n.headline}</p>
+                  <p style={{ fontSize: 7, color: 'var(--c-muted)', marginTop: 2, letterSpacing: '0.08em' }}>
+                    {n.source.toUpperCase()} · RISK <span style={{ color: c }}>{n.risk}</span>/100
+                  </p>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
 
-      {/* CTA */}
+      {/* ── CTA ────────────────────────────────────────── */}
       <a
         href="https://drishti-intel.vercel.app"
-        className="w-full py-3.5 bg-orange-500/15 border border-orange-500/35 rounded-xl text-center text-sm font-bold text-orange-400 hover:bg-orange-500/25 transition-colors"
+        className="relative font-mono text-center"
+        style={{
+          display: 'block',
+          padding: '14px 0',
+          background: 'rgba(0,212,255,0.07)',
+          border: '1px solid rgba(0,212,255,0.35)',
+          fontSize: 10,
+          fontWeight: 700,
+          color: '#00d4ff',
+          letterSpacing: '0.2em',
+          textDecoration: 'none',
+          textTransform: 'uppercase',
+          marginBottom: 12,
+        }}
       >
-        Open Full War Room →
+        <Corners color="#00d4ff" size={9} thickness={2} />
+        [ OPEN FULL WAR ROOM ] →
       </a>
 
-      <p className="text-center text-[9px] text-slate-700 mt-4 font-mono">
-        Accessed via NFC · DRISHTI v2.0 · MoPNG
+      <p style={{ textAlign: 'center', fontSize: 8, color: 'var(--c-xmuted)', letterSpacing: '0.1em' }}>
+        ACCESSED VIA NFC · DRISHTI v2.0 · MOPNG
       </p>
     </div>
   )

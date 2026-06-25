@@ -5,7 +5,7 @@
 
 **ET AI Hackathon 2026 · Problem Statement #2 · Supply Chain Intelligence / Energy Security**
 
-**[🚀 Live Demo](https://drishti-intel.vercel.app) · [📦 GitHub](https://github.com/indujg/drishti-energy-intel)**
+**[🚀 Live Demo](https://drishti-intel.vercel.app) · [📱 Mobile War Room](https://drishti-intel.vercel.app/mobile) · [📟 NFC Briefing](https://drishti-intel.vercel.app/nfc) · [📦 GitHub](https://github.com/indujg/drishti-energy-intel)**
 
 ---
 
@@ -66,7 +66,23 @@ Single click → auto-runs Hormuz Closure → Combined Crisis sequence with cine
 /price    — Live Brent price
 ```
 
-### 📱 NFC Card
+### 📱 React Native Mobile App (`mobile/` directory)
+Full Expo React Native app — same backend, offline-capable, 4 mission-control screens:
+
+| Screen | Tab | What it shows |
+|---|---|---|
+| **WAR ROOM** | `[+]` | Composite threat index, live Brent, SPR buffer, corridor risk telemetry |
+| **SCENARIO DEPLOY** | `>>>` | 4 crisis scenarios, full-screen alert modal, AI procurement directive |
+| **ASSET TRACKING** | `-->` | Live vessel feed, risk-zone badges, pull-to-refresh |
+| **SIGINT FEED** | `~~~` | Geopolitical intelligence with risk scoring + sentiment |
+
+```bash
+cd mobile
+npm install
+npx expo start          # Scan QR with Expo Go (Android / iOS)
+```
+
+### 📟 NFC Card
 Tap any NFC card → instant mobile briefing at `/nfc` — risk score, price, SPR, alerts.
 
 ---
@@ -110,9 +126,10 @@ Tap any NFC card → instant mobile briefing at `/nfc` — risk score, price, SP
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js · Tailwind CSS · TypeScript |
+| Web Frontend | Next.js 16 · Tailwind CSS · TypeScript |
 | Globe | react-globe.gl · Three.js |
 | Charts | Recharts (animated AreaChart) |
+| Mobile | Expo React Native · expo-router |
 | AI | OpenAI GPT-4o-mini |
 | Database & RT | Supabase (PostgreSQL + Realtime WebSockets) |
 | Telegram | Telegraf.js |
@@ -130,6 +147,13 @@ npm install
 cp .env.local.example .env.local
 # Fill in your API keys (see .env.local)
 npm run dev
+```
+
+### Mobile App
+```bash
+cd mobile
+npm install
+npx expo start        # Expo Go QR code — scan with phone
 ```
 
 ### Environment Variables
