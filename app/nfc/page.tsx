@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { Radio } from 'lucide-react'
+import Image from 'next/image'
 
 const BASE_BRENT = 87.42
 const CORRIDORS = [
@@ -93,6 +94,16 @@ export default function NFCBriefing() {
         <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 4 }}>
           [ MISSION BRIEFING ]
         </p>
+        <div className="flex justify-center mb-1">
+          <Image
+            src="/logo.png"
+            alt="DRISHTI"
+            width={120}
+            height={60}
+            style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+            priority
+          />
+        </div>
         <h1
           className="font-bold"
           style={{ fontSize: 18, color: '#00d4ff', textShadow: '0 0 14px #00d4ff88', letterSpacing: '0.15em' }}

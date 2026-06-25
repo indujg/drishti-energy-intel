@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Radio } from 'lucide-react'
+import Image from 'next/image'
 
 interface SimResult {
   scenario?: {
@@ -140,14 +141,15 @@ export default function MobileWarRoom() {
         className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3"
         style={{ background: '#020e0eee', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--c-border)' }}
       >
-        <div>
-          <h1
-            className="font-mono font-bold tracking-widest"
-            style={{ fontSize: 13, color: '#00d4ff', textShadow: '0 0 8px #00d4ff88', lineHeight: 1.1 }}
-          >
-            DRISHTI
-          </h1>
-          <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em' }}>दृष्टि · MOBILE WAR ROOM</p>
+        <div className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="DRISHTI"
+            width={100}
+            height={50}
+            style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+            priority
+          />
         </div>
 
         <div className="ml-auto flex items-center gap-3">

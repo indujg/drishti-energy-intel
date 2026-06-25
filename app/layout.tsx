@@ -7,6 +7,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"
 export const metadata: Metadata = {
   title: "DRISHTI — India Energy Security Intelligence",
   description: "Real-time AI-powered platform for India's oil supply chain resilience",
+  icons: { icon: '/favicon.png' },
 };
 
 export default function RootLayout({

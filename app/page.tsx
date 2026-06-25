@@ -10,6 +10,7 @@ import VesselTable from '@/components/VesselTable'
 import PriceChart from '@/components/PriceChart'
 import CrisisAlertModal from '@/components/CrisisAlertModal'
 import { Shield, Activity, Wifi, Radio, Play } from 'lucide-react'
+import Image from 'next/image'
 import { createSupabaseClient } from '@/lib/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -292,29 +293,15 @@ export default function WarRoom() {
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div
-            style={{
-              width: 28, height: 28,
-              border: '1px solid #00d4ff66',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, position: 'relative',
-            }}
-          >
-            <Corners color="#00d4ff" size={6} thickness={1.5} />
-            🛢️
-          </div>
-          <div>
-            <h1
-              className="font-mono font-bold tracking-widest"
-              style={{ fontSize: 14, color: '#00d4ff', textShadow: '0 0 10px #00d4ff88', lineHeight: 1.1 }}
-            >
-              DRISHTI
-            </h1>
-            <p style={{ fontSize: 8, color: 'var(--c-muted)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-              दृष्टि · INDIA ENERGY INTELLIGENCE
-            </p>
-          </div>
+        <div className="flex items-center shrink-0">
+          <Image
+            src="/logo.png"
+            alt="DRISHTI"
+            width={110}
+            height={55}
+            style={{ objectFit: 'contain', mixBlendMode: 'lighten' }}
+            priority
+          />
         </div>
 
         {/* Risk badge */}

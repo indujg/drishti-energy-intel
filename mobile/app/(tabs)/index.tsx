@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   StyleSheet,
   Animated,
@@ -230,11 +231,14 @@ export default function WarRoomScreen() {
     >
       {/* ── Header ── */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>DRISHTI</Text>
+        <Image
+          source={require('../../assets/icon.png')}
+          style={styles.headerLogo}
+          resizeMode="contain"
+        />
+        <View style={styles.headerMeta}>
           <Text style={styles.headerMission}>
-            {'MISSION: ET-HACKATHON-2026  |  MET: '}
-            {formatElapsed(elapsed)}
+            {'MET: '}{formatElapsed(elapsed)}
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -330,30 +334,29 @@ const styles = StyleSheet.create({
   // Header
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingTop: 54,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderDim,
     marginBottom: 10,
+    gap: 8,
   },
-  headerTitle: {
-    fontFamily: FONT_MONO,
-    fontSize: 30,
-    color: COLORS.cyan,
-    letterSpacing: 6,
-    textTransform: 'uppercase',
+  headerLogo: {
+    width: 110,
+    height: 55,
+  },
+  headerMeta: {
+    flex: 1,
   },
   headerMission: {
     fontFamily: FONT_MONO,
     fontSize: 9,
     color: COLORS.textMid,
     letterSpacing: 1.5,
-    marginTop: 4,
   },
   headerRight: {
-    paddingTop: 8,
+    alignItems: 'flex-end',
   },
 
   // Crisis banner
